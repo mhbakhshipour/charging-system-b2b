@@ -66,6 +66,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "charging_system_b2b.middlewares.request_log.RequestLogMiddleware",
     "charging_system_b2b.middlewares.rate_limit.RateLimitMiddleware",
+    "charging_system_b2b.middlewares.idempotency.IdempotencyMiddleware",
 ]
 
 LOGGING = {
@@ -109,6 +110,8 @@ CORS_ALLOW_HEADERS = (
 )
 
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
+
+IDEMPOTENCY_TTL_SECONDS = env.int("IDEMPOTENCY_TTL_SECONDS", default=60)
 
 ROOT_URLCONF = "charging_system_b2b.urls"
 
@@ -213,7 +216,6 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_PAGINATION_CLASS": "charging_system_b2b.utils.pagination.ResultsSetPagination",
-    "EXCEPTION_HANDLER": "charging_system_b2b.utils.exceptions.custom_exception_handler",
 }
 if not DEBUG:
     REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = [

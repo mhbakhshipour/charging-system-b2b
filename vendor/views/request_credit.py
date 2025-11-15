@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAdminUser
 from vendor.models import RequestCredit
 from vendor.serializers import RequestCreditSerializer
 from vendor.services import RequestCreditService
+from vendor.tasks import approve_request_credit_task
 
 
 @api_view(["POST"])
@@ -24,6 +25,5 @@ def approve_request(request):
         request_credit = RequestCredit.objects.get(id=request_credit_id)
     except RequestCredit.DoesNotExist:
         return Response({"error": "Bad Param"}, status=400)
-
-    RequestCreditService.confirm_request_credit(request_credit)
-    return Response({"status": "Request credit approved"})
+    approve_request_credit_task.delay(request_credit.id)
+    return Response({"status": "accepted"}, status=202)

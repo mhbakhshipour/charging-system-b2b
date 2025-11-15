@@ -1,14 +1,15 @@
-from charging_system_b2b.utils.views import BaseModelViewSet
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
-from customer.models import Customer
-from customer.serializers import CustomerSerializer
+from customer.services import CustomerService
+from customer.serializers import IncreaseCustomerCreditSerializer
 
 
-class CustomerViewSet(BaseModelViewSet):
-    queryset = Customer.objects.all()
-    serializer_class = CustomerSerializer
-    search_fields = ["phone_number"]
-    permission_classes = []
+@api_view(["POST"])
+def increase_credit(request):
+    serializer = IncreaseCustomerCreditSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
 
-    def perform_create(self, serializer):
-        serializer.save()
+    CustomerService.increase_credit(**serializer.validated_data)
+
+    return Response({"data": serializer.data})

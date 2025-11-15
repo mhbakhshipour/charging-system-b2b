@@ -1,11 +1,7 @@
-from django.urls import path, include
-from rest_framework import routers
+from django.urls import path
 
-from customer import views
-
-router = routers.DefaultRouter()
-router.register(r"customer", views.CustomerViewSet, basename="customer")
+from customer.views import increase_credit
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("increase-credit/", increase_credit),
 ]

@@ -1,11 +1,8 @@
-from django.urls import path, include
-from rest_framework import routers
+from django.urls import path
 
-from vendor import views
-
-router = routers.DefaultRouter()
-router.register(r"vendor", views.VendorViewSet, basename="vendor")
+from vendor.views import submit_request, approve_request
 
 urlpatterns = [
-    path("", include(router.urls)),
+    path("submit-request/", submit_request),
+    path("approve-request/", approve_request),
 ]

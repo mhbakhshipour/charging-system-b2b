@@ -26,15 +26,19 @@ class RateLimitMiddleware:
         rate_duration = UNSAFE_METHOD_RATE_LIMIT_DURATION
         cache_key = f"rate_limit:{client_ip}:{request.path}"
 
-        # Get the current number of requests made by the client
-        current_requests = cache.get(cache_key, 0)
+        initialized = cache.add(cache_key, 1, rate_duration)
+        if not initialized:
+            try:
+                current_requests = cache.incr(cache_key)
+            except Exception:
+                current_requests = (cache.get(cache_key, 0) or 0) + 1
+                cache.set(cache_key, current_requests, rate_duration)
 
-        # Check if the client has exceeded the rate limit
-        if current_requests >= rate_number:
-            return HttpResponseForbidden("Rate limit exceeded")
-
-        # Update the number of requests made by the client
-        cache.set(cache_key, current_requests + 1, rate_duration)
+            if current_requests > rate_number:
+                return HttpResponseForbidden("Rate limit exceeded")
+        else:
+            if 1 > rate_number:
+                return HttpResponseForbidden("Rate limit exceeded")
 
         # Pass the request through to the next middleware
         response = self.get_response(request)

@@ -20,20 +20,20 @@ env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-BASE_URL = env.str("BASE_URL")
+BASE_URL = env.str("BASE_URL", default="http://localhost:8000")
 
-ENV = env.str("ENV")
+ENV = env.str("ENV", default="DEV")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str("SECRET_KEY")
+SECRET_KEY = env.str("SECRET_KEY", default="dev-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG")
+DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
 
 # Application definition
@@ -109,7 +109,7 @@ CORS_ALLOW_HEADERS = (
     "content-disposition",
 )
 
-CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS")
+CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 
 IDEMPOTENCY_TTL_SECONDS = env.int("IDEMPOTENCY_TTL_SECONDS", default=60)
 
@@ -136,17 +136,26 @@ WSGI_APPLICATION = "charging_system_b2b.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env.str("DB_DATABASE"),
-        "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD") or env.str("DB_ROOT_PASSWORD"),
-        "HOST": env.str("DB_HOST"),
-        "PORT": env.str("DB_PORT"),
-        "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=60),
+if ENV == "TEST":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "test_db.sqlite3",
+            "TEST": {"NAME": BASE_DIR / "test_db.sqlite3"},
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env.str("DB_DATABASE", default="postgres"),
+            "USER": env.str("DB_USER", default="postgres"),
+            "PASSWORD": env.str("DB_PASSWORD", default=""),
+            "HOST": env.str("DB_HOST", default="localhost"),
+            "PORT": env.str("DB_PORT", default="5432"),
+            "CONN_MAX_AGE": env.int("DB_CONN_MAX_AGE", default=60),
+        }
+    }
 
 
 # Password validation
@@ -193,15 +202,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": env.str("REDIS_LOCATION"),
+        "LOCATION": env.str("REDIS_LOCATION", default="redis://localhost:6379/0"),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
 }
 
-CELERY_BROKER_URL = env.str("REDIS_LOCATION")
-CELERY_RESULT_BACKEND = env.str("REDIS_LOCATION")
+CELERY_BROKER_URL = env.str("REDIS_LOCATION", default="redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = env.str("REDIS_LOCATION", default="redis://localhost:6379/0")
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
